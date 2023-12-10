@@ -94,22 +94,31 @@ c----------------------------------------------------------------------
 c--------------------------------------------------------------------------------------
 
 c----------------------------------------------------------------------
-c Prints parameters
+c Prints parameters to screen
 c----------------------------------------------------------------------
-        subroutine print_params(rho_ex,Nx,Ny,Nz,filename)
+        subroutine print_params_toscreen(rho_ex,Nx,Ny,Nz,
+     &                          f_id,nametag,n_procs)
+
         implicit none
         real*8 rho_ex
         integer Nx,Ny,Nz
+        integer f_id
+        integer n_procs
 
-        character*40 filename
+        character*40 nametag
 
         !--------------------------------------------------------------
 
+        write (*,*) "Working on ",n_procs," processes"
         write (*,*) "Perform radial extrapolation at rho_ex=",rho_ex
         write (*,*) "with resolution Nx,Ny,Nz=",Nx,Ny,Nz
-        write (*,*) "and grid spacing dx,dy,dz=",
-     &         2.0d0/(Nx-1),2.0d0/(Ny-1),2.0d0/(Nz-1)
-        write (*,*) "Output file is ",filename
+        if (f_id.eq.0) then
+            write(*,*) "Extrapolating f=rho:=sqrt(x**2+y**2+z**2)"
+          else
+            write (*,*) "ERROR: f_id>0 is not implemented."
+            stop
+        end if
+        write (*,*) "Output file tag is ",nametag
 
         return
         end
@@ -123,7 +132,71 @@ c----------------------------------------------------------------------
         !--------------------------------------------------------------
 
         
-        write (*,*) "======================================="
+        write (*,*) "================================================"
 
+        end
+c--------------------------------------------------------------------------------------
+
+c--------------------------------------------------------------------------------------
+c For a given process, determines the number of points along each Cartesian direction 
+c and the initial value of the corresponding Cartesian coordinate
+c--------------------------------------------------------------------------------------
+        subroutine setup_local_grid(
+     &       Nx,Ny,Nz,
+     &       dx,dy,dz,
+     &       xinit,yinit,zinit,
+     &       Nx_all,Ny_all,Nz_all,n_procs,procid)
+
+        implicit none
+
+        integer n_procs,procid
+        integer Nx_all,Ny_all,Nz_all
+        real*8 dx,dy,dz
+        integer Nx,Ny,Nz
+        real*8 xinit,yinit,zinit
+
+!----------------------------------------------------------------------
+
+        dx=2.0d0/(Nx_all-1)
+        dy=2.0d0/(Ny_all-1)
+        dz=2.0d0/(Nz_all-1)
+
+        Nx=floor(real(Nx_all)/n_procs)
+        if (procid.eq.(n_procs-1)) Nx=Nx_all-(n_procs-1)*Nx
+        xinit=-1+procid*Nx*dx
+        if (procid.eq.(n_procs-1)) xinit=1-(Nx-1)*dx
+
+        Ny=floor(real(Ny_all)/n_procs)
+        if (procid.eq.(n_procs-1)) Ny=Ny_all-(n_procs-1)*Ny
+        yinit=-1+procid*Ny*dy
+        if (procid.eq.(n_procs-1)) yinit=1-(Ny-1)*dy
+
+        Nz=floor(real(Nz_all)/n_procs)
+        if (procid.eq.(n_procs-1)) Nz=Nz_all-(n_procs-1)*Nz
+        zinit=-1+procid*Nz*dz
+        if (procid.eq.(n_procs-1)) zinit=1-(Nz-1)*dz
+
+        return
+        end
+c--------------------------------------------------------------------------------------
+
+c--------------------------------------------------------------------------------------
+c Prints message depending on whether condition is true or false
+c--------------------------------------------------------------------------------------
+
+        subroutine print_message(msg_true, msg_false, condition)
+
+            implicit none
+
+            character(len=*) msg_true, msg_false
+            logical condition
+!----------------------------------------------------------------------
+        
+            if (condition) then
+                write (*,*) msg_true
+            else
+                write (*,*) msg_false
+            endif
+        
         end
 c--------------------------------------------------------------------------------------

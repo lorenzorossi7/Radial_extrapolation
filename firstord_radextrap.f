@@ -14,8 +14,8 @@ c-------------------------------------------------------------------------------
 
         subroutine sphere_coords_func(
      &                      x_ex,y_ex,z_ex,
-     &                      f_ex,
-     &                      i,j,k,              
+     &                      f_ex,  
+     &                      i,j,k,             
      &                      f,
      &                      rho_ex,
      &                      x,y,z,Nx,Ny,Nz)
@@ -35,10 +35,6 @@ c-------------------------------------------------------------------------------
         integer ip2c,jp2c,kp2c
         integer ip2d,jp2d,kp2d
         integer a,b,c,d
-
-        integer ix1,ix2,ix3,jy1,jy2,jy3,kz1,kz2,kz3
-        integer ix,jy,kz
-
 
         real*8 x0,y0,z0,rho0,q,chi0,xi0
         real*8 xp2a,xp2b,xp2c,xp2d
@@ -67,6 +63,15 @@ c-------------------------------------------------------------------------------
         real*8 bilinear_interp
         real*8 firstord_extrap
 !----------------------------------------------------------------------
+
+!              call MPI_comm_rank(MPI_COMM_WORLD, rank, ierr)
+!              call MPI_comm_size(MPI_COMM_WORLD, n_ranks, ierr)
+!              if (rank.eq.1) then
+!              do m=1,Nx
+!                write (*,*) "rank,i,x(i),x(i-1)=",
+!     &             rank,i,x(i),x(i-1)
+!              end do
+!              end if
 
               !coords and function at p1
               xp1=x(i)
@@ -2516,6 +2521,25 @@ c-------------------------------------------------------------------------------
 
 
               end if !closes condition on ((abs(xp1).gt.abs(yp1)).and.(abs(xp1).gt.abs(zp1)))
+
+!                if (abs(rho_ex-f_ex).ge.0.03125d0) then
+!                    write(*,*) "TEST FAILED"
+!                    write(*,*) "at xp1,yp1,zp1,
+!     &                 xp2a,yp2a,zp2a,
+!     &                 xp2b,yp2b,zp2b,
+!     &                 xp2c,yp2c,zp2c,
+!     &                 xp2d,yp2d,zp2d,
+!     &                 xp2,yp2,zp2,               
+!     &                 x_ex,y_ex,z_ex,f_ex=",
+!     &                xp1,yp1,zp1,
+!     &                 xp2a,yp2a,zp2a,
+!     &                 xp2b,yp2b,zp2b,
+!     &                 xp2c,yp2c,zp2c,
+!     &                 xp2d,yp2d,zp2d,
+!     &                 xp2,yp2,zp2,
+!     &                x_ex,y_ex,z_ex,
+!     &               f_ex
+!                end if
 
         return
         end

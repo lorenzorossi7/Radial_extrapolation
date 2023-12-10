@@ -4,45 +4,36 @@ c 1. values of Cartesian coordinates x,y,z on the grid
 c 2. points p1 closest to the sphere to use for extrapolation (using mask)
 c 3. number of extrapolated points on the sphere, N_ex
 c--------------------------------------------------------------------------
-         subroutine initialise_grid_func_mask(f,num_f,x,y,z,
+         subroutine initialise_coords_func_mask(f,f_id,x,y,z,
+     &                         xinit,yinit,zinit,    
      &                         rho_ex,mask,tag,
-     &                         Nx,Ny,Nz,N_ex)
- 
+     &                         Nx,Ny,Nz,dx,dy,dz,N_ex)
+
          implicit none
  
          integer Nx,Ny,Nz
+         real*8 dx,dy,dz
          integer i,j,k
          integer N_ex
+
+         real*8 xinit,yinit,zinit
          integer ind_ex
          real*8 x(Nx),y(Ny),z(Nz)
          integer mask(Nx,Ny,Nz),tag
          real*8 rho,chi,xi
-         real*8 dx,dy,dz
          real*8 rho_ex
          real*8 f(Nx,Ny,Nz)
-         integer num_f
+         integer f_id
 
 !--------------------------------------------------------------------
 
-         write(*,*) "Initialising Cartesian coordinates and"
-         if (num_f.eq.0) then
-            write(*,*) "Initialising f=rho:=sqrt(x**2+y**2+z**2) and"
-         else
-            write (*,*) "ERROR: num_f>0 is not implemented."
-            stop
-         end if
-         write(*,*) "Initialising mask function"
-
-         dx=2.0d0/(Nx-1)
-         dy=2.0d0/(Ny-1)
-         dz=2.0d0/(Nz-1)
          N_ex=0
          do i=1,Nx
-            x(i)=-1+(i-1)*dx
+            x(i)=xinit+(i-1)*dx
             do j=1,Ny
-               y(j)=-1+(j-1)*dy
+               y(j)=yinit+(j-1)*dy
                do k=1,Nz
-                  z(k)=-1+(k-1)*dz
+                  z(k)=zinit+(k-1)*dz
 
                   !get spherical coordinate values of point (i,j,k)
                   call cart_to_sph(rho,chi,xi,x(i),y(j),z(k))
@@ -51,7 +42,11 @@ c--------------------------------------------------------------------------
                   f(i,j,k)=rho
  
                   !set mask to tag closest points to the sphere of radius rho_ex
-                  if (rho.lt.rho_ex.and.rho.gt.(rho_ex-3.0d0*dx/2)) then
+                  if ((rho.lt.rho_ex.and.rho.gt.(rho_ex-3.0d0*dx/2))
+     &                .and.((i-1).ge.1).and.((i+1).le.Nx).and.  
+     &                ((j-1).ge.1).and.((j+1).le.Ny).and.  
+     &                ((k-1).ge.1).and.((k+1).le.Nz)
+     &                   ) then
                      mask(i,j,k)=tag
                      N_ex=N_ex+1
                   else
